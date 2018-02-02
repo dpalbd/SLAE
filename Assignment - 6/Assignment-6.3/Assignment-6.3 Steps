@@ -84,4 +84,7 @@ Shellcode Length:  39
  2268 pts/1    00:00:00 sh
  2269 pts/1    00:00:00 ps
 #
+# uname -a
+Linux kali 4.4.0-kali1-686 #1 SMP Debian 4.4.2-3kali1 (2016-02-23) i686 GNU/Linux
+#
 
