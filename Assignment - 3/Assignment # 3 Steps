@@ -15,3 +15,14 @@ in memory it will end up. If we can get the instruction pointer to point to a sm
 we can search memory to find the main payload, which is prepended with a small tag of bytes (the egg).
 
 There is a great resource for egg hunter theory/implementation at http://www.hick.org/code/skape/papers/egghunt-shellcode.pdf.
+
+There are 3 conditions that are important in order for this technique to work:
+
+1. We must be able to jump to (jmp, call, push/ret) & execute “some” shellcode.  The amount of available buffer space can be relatively 
+small,because it will only contain the so-called “egg hunter”.  The egg hunter code must be available in a predictable location (so we can 
+reliably jump to it & execute it).
+2. The final shellcode must be available somewhere in memory (stack/heap/…).
+3. We must “tag” or prepend the final shellcode with a unique string/marker/tag. The initial shellcode (the small “egg hunter”) will step 
+through memory, looking for this marker.When it finds it, it will start executing the code that is placed right after the marker using a 
+jmp or call instruction.This means that we will have to define the marker in the egg hunter code, and also write it just in front of the 
+actual shellcode.
