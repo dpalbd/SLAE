@@ -76,3 +76,7 @@ for more realibility.
 
 c.Should be configurable for different payloads	
 
+For quick demo of our egghunter shellcode working with different payload, we collect shellcode from http://shell-storm.org.
+http://shell-storm.org/shellcode/files/shellcode-882.php
+This shellcode is length is 89 bytes & will perfrom bind TCP Shellcode Port 1337 on Linux x86 platform.
+
