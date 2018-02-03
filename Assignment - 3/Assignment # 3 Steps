@@ -101,7 +101,7 @@ tcp6       0      0 :::22                   :::*                    LISTEN      
 Yes, the TCP port 1337 is open.
 tcp        0      0 0.0.0.0:1337            0.0.0.0:*               LISTEN      2227/./Egg_hunter_w 
 
-From the terminal if we try to connect this TCP port we will get shell, for example :
+From the terminal if we try to connect this TCP port using "nc" we will get shell, for example :
 
 root@kali:/home/SLAE/MY_EXP/Assignment3# nc localhost 1337
 id
