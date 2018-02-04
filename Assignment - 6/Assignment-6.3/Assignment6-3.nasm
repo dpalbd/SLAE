@@ -19,9 +19,9 @@ section .text
 
 _start:
 
- xor    ebx,ebx      ;clear ebx
- xor    ecx,ecx      ;clear ecx 
- mul    ecx          ;clear eax, edx
+ xor    ebx,ebx      ;zero out ebx
+ xor    ecx,ecx      ;zero out eax
+ mul    ecx          ;zero out eax, edx
  push   eax          ;push eax on esp i.e stack
 
  mov esi,0xACB77373  
