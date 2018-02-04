@@ -7,8 +7,8 @@ global _start
 section .text
 _start:
     
-    xor ebx,ebx       		;0
-    xor ecx, ecx      		;0
+    xor ebx,ebx       		;zero out ebx
+    xor ecx, ecx      		;zero out ecx
     mul ecx           		;clear eax & edx
 	
 memory_block:
