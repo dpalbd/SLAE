@@ -1,0 +1,151 @@
+Assignment-5.1 Steps#
+
+
+Step 1# 
+
+root@kali:~# msfvenom -p linux/x86/read_file PATH=/home/SLAE/Assignment5/task1.txt -f c -a x86 --platform linux
+No encoder or badchars specified, outputting raw payload
+Payload size: 94 bytes
+unsigned char buf[] = 
+"\xeb\x36\xb8\x05\x00\x00\x00\x5b\x31\xc9\xcd\x80\x89\xc3\xb8"
+"\x03\x00\x00\x00\x89\xe7\x89\xf9\xba\x00\x10\x00\x00\xcd\x80"
+"\x89\xc2\xb8\x04\x00\x00\x00\xbb\x01\x00\x00\x00\xcd\x80\xb8"
+"\x01\x00\x00\x00\xbb\x00\x00\x00\x00\xcd\x80\xe8\xc5\xff\xff"
+"\xff\x2f\x68\x6f\x6d\x65\x2f\x53\x4c\x41\x45\x2f\x41\x73\x73"
+"\x69\x67\x6e\x6d\x65\x6e\x74\x35\x2f\x74\x61\x73\x6b\x31\x2e"
+"\x74\x78\x74\x00";
+
+Step 2 #
+
+Compile the shellcode & execute the system, for reading the desire file from x86 Linux system:
+root@kali:/home/SLAE/Assignment5# gcc -fno-stack-protector -z execstack shellcode_read_gdb.c -o shellcode_read_gdb
+root@kali:/home/SLAE/Assignment5# ./shellcode_read_gdb
+Shellcode Length:  4
+W00TW00T
+SLAE-32 is a nice course...
+
+
+Step 3 # Analysis the shellcode using GDB (as per Assignment-5, here task number is 1):
+
+root@kali:/home/SLAE/Assignment5# gdb -q shellcode_read_gdb
+Reading symbols from shellcode_read_gdb...(no debugging symbols found)...done.
+(gdb) set disassembly-flavor intel
+(gdb) break *&code
+Breakpoint 1 at 0x8049740
+(gdb) run
+Starting program: /home/SLAE/Assignment5/shellcode_read_gdb
+Shellcode Length:  4
+
+Breakpoint 1, 0x08049740 in code ()
+(gdb) disassemble
+Dump of assembler code for function code:
+=> 0x08049740 <+0>:     jmp    0x8049778 <code+56>
+   0x08049742 <+2>:     mov    eax,0x5
+   0x08049747 <+7>:     pop    ebx
+   0x08049748 <+8>:     xor    ecx,ecx
+   0x0804974a <+10>:    int    0x80
+   0x0804974c <+12>:    mov    ebx,eax
+   0x0804974e <+14>:    mov    eax,0x3
+   0x08049753 <+19>:    mov    edi,esp
+   0x08049755 <+21>:    mov    ecx,edi
+   0x08049757 <+23>:    mov    edx,0x1000
+   0x0804975c <+28>:    int    0x80
+   0x0804975e <+30>:    mov    edx,eax
+   0x08049760 <+32>:    mov    eax,0x4
+   0x08049765 <+37>:    mov    ebx,0x1
+   0x0804976a <+42>:    int    0x80
+   0x0804976c <+44>:    mov    eax,0x1
+   0x08049771 <+49>:    mov    ebx,0x0
+   0x08049776 <+54>:    int    0x80
+   0x08049778 <+56>:    call   0x8049742 <code+2>
+   0x0804977d <+61>:    das
+   0x0804977e <+62>:    push   0x2f656d6f
+   0x08049783 <+67>:    push   ebx
+   0x08049784 <+68>:    dec    esp
+   0x08049785 <+69>:    inc    ecx
+   0x08049786 <+70>:    inc    ebp
+   0x08049787 <+71>:    das
+   0x08049788 <+72>:    inc    ecx
+   0x08049789 <+73>:    jae    0x80497fe
+   0x0804978b <+75>:    imul   esp,DWORD PTR [edi+0x6e],0x746e656d
+   0x08049792 <+82>:    xor    eax,0x7361742f
+   0x08049797 <+87>:    imul   esi,DWORD PTR [ecx],0x2e
+   0x0804979a <+90>:    je     0x8049814
+   0x0804979c <+92>:    je     0x804979e <code+94>
+   0x0804979e <+94>:    add    BYTE PTR [eax],al
+End of assembler dump.
+(gdb)
+
+(gdb) nexti
+0x08049778 in code ()
+(gdb) disassemble
+Dump of assembler code for function code:
+   0x08049740 <+0>:     jmp    0x8049778 <code+56>
+   0x08049742 <+2>:     mov    eax,0x5
+   0x08049747 <+7>:     pop    ebx
+   0x08049748 <+8>:     xor    ecx,ecx
+   0x0804974a <+10>:    int    0x80
+   0x0804974c <+12>:    mov    ebx,eax
+   0x0804974e <+14>:    mov    eax,0x3
+   0x08049753 <+19>:    mov    edi,esp
+   0x08049755 <+21>:    mov    ecx,edi
+   0x08049757 <+23>:    mov    edx,0x1000
+   0x0804975c <+28>:    int    0x80
+   0x0804975e <+30>:    mov    edx,eax
+   0x08049760 <+32>:    mov    eax,0x4
+   0x08049765 <+37>:    mov    ebx,0x1
+   0x0804976a <+42>:    int    0x80
+   0x0804976c <+44>:    mov    eax,0x1
+   0x08049771 <+49>:    mov    ebx,0x0
+   0x08049776 <+54>:    int    0x80
+=> 0x08049778 <+56>:    call   0x8049742 <code+2>
+   0x0804977d <+61>:    das
+   0x0804977e <+62>:    push   0x2f656d6f
+   0x08049783 <+67>:    push   ebx
+   0x08049784 <+68>:    dec    esp
+   0x08049785 <+69>:    inc    ecx
+   0x08049786 <+70>:    inc    ebp
+   0x08049787 <+71>:    das
+   0x08049788 <+72>:    inc    ecx
+   0x08049789 <+73>:    jae    0x80497fe
+   0x0804978b <+75>:    imul   esp,DWORD PTR [edi+0x6e],0x746e656d
+   0x08049792 <+82>:    xor    eax,0x7361742f
+   0x08049797 <+87>:    imul   esi,DWORD PTR [ecx],0x2e
+   0x0804979a <+90>:    je     0x8049814
+   0x0804979c <+92>:    je     0x804979e <code+94>
+   0x0804979e <+94>:    add    BYTE PTR [eax],al
+End of assembler dump.
+(gdb) x/s 0x0804977d
+0x804977d <code+61>:    "/home/SLAE/Assignment5/task1.txt"
+(gdb)
+
+Step 1: The first part of instructions  for opening the file
+
+mov eax,0x5   ; open syscall 
+pop ebx       ; pop the location for opening the file, here this will be pop 0x0804977d
+xor ecx,ecx   ; zero out ecx
+int 0x80      ; execute the syscall 
+
+Step 2: The following part of instructions will read the file
+
+mov ebx,eax    
+mov eax,0x3               ; read syscall 
+mov edi,esp
+mov ecx,edi
+mov edx,0x1000            ;set 4096 bytes to read
+int 0x80                  ; execute the syscall 
+
+Step 3: The following part of instructions will display the output
+
+mov edx,eax
+mov eax,0x4       ; write syscall 
+mov ebx,0x1       ; write to STDIN i.e display the output 
+int 0x80
+
+Step 4: Exit 
+
+mov eax,0x1      ; exit 
+mov ebx,0x0
+int 0x80         ; execute the exit syscall 
+
+
