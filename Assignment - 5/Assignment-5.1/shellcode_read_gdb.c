@@ -1,6 +1,8 @@
 #include<stdio.h>
 #include<string.h>
 
+//**msfvenom -p linux/x86/read_file PATH=/home/SLAE/Assignment5/task1.txt -f c -a x86 --platform linux**/
+
 unsigned char code[] = \
 
 "\xeb\x36\xb8\x05\x00\x00\x00\x5b\x31\xc9\xcd\x80\x89\xc3\xb8"
