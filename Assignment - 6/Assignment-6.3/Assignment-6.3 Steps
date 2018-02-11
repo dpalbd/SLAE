@@ -33,7 +33,7 @@ Step 2:
 Prepare few add,sub instructions for 0x68732f2f and 0x6e69622f and store the value into esi,edi and push these into stack i.e. esp. 
 
 Step 3:
-repare the polymorphic Shellcodes(modified) as per SLAE Assignment # 6, here our file name is Assignment6-3.nasm
+prepare the polymorphic Shellcodes(modified) as per SLAE Assignment # 6, here our file name is Assignment6-3.nasm
 
 root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# nasm -f elf Assignment6-3.nasm
 root@kali:/home/SLAE/MY_EXP/Assignment6/Assignment6.3# ld -o Assignment6-3 Assignment6-3.o
